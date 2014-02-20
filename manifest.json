@@ -1,0 +1,24 @@
+{
+	"manifest_version": 2,
+
+	"name": "Page Reloader",
+	"description": "Reloads the page if HTTP status is any of:
+	 	408 (Request Timeout),
+		502 (Bad Gateway),
+		503 (Service Unavailable),
+		504 (Gateway Timeout),
+		522 (Connection timeout),
+		524 (Network timeout - CDN),
+		598 (Network timeout - MS CDN),
+		599 (Network timeout - MS CDN) or socket error",
+	"version": "0.4",
+	"background": {
+		"scripts": ["background.js"]
+	},
+
+	"permissions": ["tabs", "webRequest", "*://*/*"],
+	"browser_action": {
+		"default_icon": "icons/icon.png",
+		"default_title": "Toggle page reloader"
+	}
+}
