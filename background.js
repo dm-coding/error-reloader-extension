@@ -1,10 +1,9 @@
 /** Set defaults **/
 status_codes = [324, 408, 502, 503, 504, 522, 524, 598, 599];
-socket_errors = ["net::ERR_ABORTED", "net::ERR_BLOCKED_BY_CLIENT"];
+socket_errors = ["net::ERR_ABORTED"];
 ignore_types = ["stylesheet", "script", "image", "xmlhttprequest"];
 enabled = true;
 wait_timer = 3000; // ms (3 seconds before page reloads)
-chrome.browserAction.setBadgeText({text: "ON"});
 
 tab_list = {};
 
@@ -19,7 +18,6 @@ function incrementTabCounter(tabId) {
 
 function reloadTab(tabId) {
 	if (tabId > -1) {
-		console.log("Reloading..");
 		chrome.browserAction.setBadgeText({text: ""+incrementTabCounter(tabId)+""});
 		chrome.tabs.reload(tabId);
 	}
@@ -68,24 +66,20 @@ chrome.webRequest.onErrorOccurred.addListener(
 chrome.browserAction.onClicked.addListener(function() {
 	if (enabled) {
 		enabled = false;
-		alert("Reloader disabled");
-		chrome.browserAction.setBadgeText({text: "OFF"});
+		chrome.browserAction.setIcon({path:"icons/reloader-disabled.png"});
+		chrome.browserAction.setTitle({ "title": "Enable Error Reloader"});
 	} else {
 		enabled = true;
-		alert("Reloader enabled");
-		chrome.browserAction.setBadgeText({text: "ON"});
+		chrome.browserAction.setIcon({path:"icons/reloader-19.png"});
+		chrome.browserAction.setTitle({ "title": "Disable Error Reloader"});
 	}
 });
 
+/** Sets the icon badge text for the extension to be the
+number of times the current tab has been reloaded, if it has been reloaded
+at all.**/
 chrome.tabs.onActivated.addListener(function(activeInfo) {
-	chrome.browserAction.setBadgeText({text: ""});
 	if(tab_list[activeInfo.tabId]) {
 		chrome.browserAction.setBadgeText({text: ""+tab_list[activeInfo.tabId]+""});
-	} else {
-		if (enabled) {
-			chrome.browserAction.setBadgeText({text: "ON"});
-		} else {
-			chrome.browserAction.setBadgeText({text: "OFF"});
-		}		
 	}
 });
