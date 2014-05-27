@@ -2,10 +2,10 @@
 	"manifest_version": 2,
 
 	"name": "Error Reloader",
-	"description": "On slow and unreliable connections it's common for page loads to fail after low-level transport errors, socket errors and general timeouts. Since there is no way for the browser to tell that the resource is actually available, common browser functionality is to stop after presenting an error to the user. On unreliable networks such as the internet this behaviour is a mistake. This browser extension will automaticly reload the page if a transient error occurs.",
+	"description": "On slow and unreliable connections it's common to stop after presenting an error to the user. On unreliable networks such as the internet this behaviour is a mistake - the correct behaviour should be to minimize user intervention by continually retrying the resource until the transient error goes away. This browser extension corrects that oversight by automaticly reloading the resource if a transient error occurs.",
 	"version": "1.0",
 	"background": {
-		"scripts": ["background.js"]
+		"scripts": ["uri.js", "background.js"]
 	},
 
 	"icons": { 
