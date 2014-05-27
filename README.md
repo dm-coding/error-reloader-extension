@@ -8,7 +8,7 @@ On slow and unreliable connections it's common for page loads to fail after low-
 The extension was designed in Opera and works in both Chrome and Opera desktop editions.
 
 # Installation
-For most users, it is sufficient to drag the relevent packed browser extension into the browser extensions management page. The packed extensions live in the "extensions" directory in this repository. For Opera, use error_reloader.nex. For Chrome, use error_reloader.crx.
+On this testing branch it is nessesary to load the extension folder into the browser through the browser's extension page. Make sure the extensions page has been put into developer mode to reveal this option.
 
 # Privacy Information
 As any page on the internet could in principal experience a transient error, this extension needs permission to operate on all URLs. However, users should rest assured that at no point will the extension ever communicate in any way with any process outside of the requested page's host.
