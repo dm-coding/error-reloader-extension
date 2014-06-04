@@ -1,10 +1,32 @@
 /** Set defaults **/
+/** Errors are taken directly from Chromium source code at via a macro at 
+https://src.chromium.org/viewvc/chrome/trunk/src/net/base/net_error_list.h
+Not all error codes are guaranteed to be applicable or correct - it is an assumed
+list based on expected behaviour.
+However, the following codes *have* been observed in the wild and should make their way into
+most future versions of this program:
+	"net::ERR_EMPTY_RESPONSE", "net::ERR_ADDRESS_UNREACHABLE", "net::ERR_INVALID_RESPONSE", "net::ERR_CONTENT_LENGTH_MISMATCH"
+The following codes are highly likely to be relevant:
+	"net::ERR_CONNECTION_REFUSED", "net::ERR_CONNECTION_ABORTED", "net::ERR_CONNECTION_FAILED",
+	"net::ERR_TIMED_OUT", "net::ERR_CONNECTION_TIMED_OUT"
+*/
 var status_codes = [324, 408, 502, 503, 504, 522, 524, 598, 599],
-	socket_errors = ["net::ERR_ABORTED", "net::ERR_EMPTY_RESPONSE"],
+	socket_errors = ["net::ERR_ABORTED", "net::ERR_EMPTY_RESPONSE", "net::ERR_TIMED_OUT", 
+		"net::ERR_IO_PENDING", "net::ERR_NETWORK_CHANGED", "net::ERR_CONNECTION_CLOSED", "net::ERR_CONNECTION_RESET",
+		"net::ERR_CONNECTION_REFUSED", "net::ERR_CONNECTION_ABORTED", "net::ERR_CONNECTION_FAILED", "net::ERR_INTERNET_DISCONNECTED",
+		"net::ERR_ADDRESS_UNREACHABLE", "net::ERR_TUNNEL_CONNECTION_FAILED", "net::ERR_RENOGITIATION_REQUESTED", 
+		"net::ERR_CONNECTION_TIMED_OUT", "net:ERR_HOST_RESOLVER_QUEUE_TOO_LARGE", "net::ERR_SOCKS_CONNECTION_FAILED", 
+		"net::ERR_SOCKS_CONNECTION_HOST_UNREACHABLE", "net::ERR_PROXY_CONNECTION_FAILED", "net::ERR_NAME_RESOLUTION_FAILED",
+		"net::ERR_TEMPORARILY_THROTTLED", "net::ERR_WS_PROTOCOL_ERROR", "net::ERR_SSL_HANDSHAKE_NOT_COMPLETED", "net::ERR_WS_THROTTLE_QUEUE_TOO_LARGE",
+		"net::ERR_TOO_MANY_SOCKET_STREAMS", "net::ERR_INVALID_RESPONSE", "net::ERR_INVALID_SPDY_STREAM", "net::ERR_INCOMPLETE_SPDY_HEADERS",
+		"net::ERR_SPDY_PING_FAILED", "net::ERR_CONTENT_LENGTH_MISMATCH", "net::ERR_RESPONSE_HEADERS_TRUNCATED",
+		"net::ERR_QUIC_HANDSHAKE_FAILED", "net::ERR_FTP_TRANSFER_ABORTED", "net::ERR_FTP_FILE_BUSY", "net::ERR_FTP_BAD_COMMAND_SEQUENCE",
+		"net::ERR_FTP_SYNTAX_ERROR", "net::ERR_DNS_MALFORMED_RESPONSE", "net::ERR_DNS_SERVER_FAILED", "net::ERR_DNS_TIMED_OUT", "net::ERR_DNS_SERVER_FAILED"
+	],
 	asset_types = ["stylesheet", "script", "image"],
 	enabled = true,
 	wait_timer = 3000, // ms (3 seconds before page reloads)
-	asset_list = {};
+	asset_list = {}; // here we store each asset which has been loaded along with the number of times this has happened.
 
 /** Convenience function to detect if array contains a value **/
 function in_array(needle, haystack) {
@@ -34,13 +56,17 @@ function reloadAsset(details) {
 	uri = URI(details.url);
 	// We'll be checking the asset list against the details.url. If it was already loaded, we need to remove our counter in order
 	// so that the asset counter doesn't get confused.
-	if (uri.hasQuery("error_reloader_extension_reloaded")) {
-		uri.removeQuery("error_reloader_extension_reloaded");
-	}
+	//if (uri.hasQuery("error_reloader_extension_reloaded")) {
+	//	uri.removeQuery("error_reloader_extension_reloaded");
+	//}
 	// Now we've normalised the URL into what it was before error reloader started, let's look up the reload count, increment it,
 	// and use it to change that URL.
-	new_url = uri.addQuery({ 
+/*	new_url = uri.addQuery({ 
 		error_reloader_extension_reloaded: incrementCounter(asset_list, uri.toString())
+	}).toString();*/
+
+	new_url = uri.addQuery({ 
+		error_reloader_extension_reloaded: incrementCounter(asset_list, uri.removeQuery("error_reloader_extension_reloaded").toString())
 	}).toString();
 
 	// Now we have the new URL and the old URL we'll use them both with an injected content script to change the resource locations.
@@ -101,6 +127,7 @@ chrome.webRequest.onHeadersReceived.addListener(
 a low-level socket error. In these cases, an error is fired.)**/
 chrome.webRequest.onErrorOccurred.addListener(
 	function(details) {
+		console.log("Reloader: Tab ID #" + details.tabId + " (" + details.url + ") encountered socket error: " + details.error);
 		if(enabled) {
 			if (in_array(details.error, socket_errors)) {
 				if (details.type === "main_frame") {
