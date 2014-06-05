@@ -1,11 +1,12 @@
 /** Set defaults **/
-/** Errors are taken directly from Chromium source code at via a macro at 
+/** Errors are taken directly from Chromium source code macro at 
 https://src.chromium.org/viewvc/chrome/trunk/src/net/base/net_error_list.h
 Not all error codes are guaranteed to be applicable or correct - it is an assumed
 list based on expected behaviour.
 However, the following codes *have* been observed in the wild and should make their way into
 most future versions of this program:
-	"net::ERR_EMPTY_RESPONSE", "net::ERR_ADDRESS_UNREACHABLE", "net::ERR_INVALID_RESPONSE", "net::ERR_CONTENT_LENGTH_MISMATCH"
+	"net::ERR_EMPTY_RESPONSE", "net::ERR_ADDRESS_UNREACHABLE", "net::ERR_INVALID_RESPONSE", "net::ERR_CONTENT_LENGTH_MISMATCH",
+	"net::ERR_CONNECTION_RESET"
 The following codes are highly likely to be relevant:
 	"net::ERR_CONNECTION_REFUSED", "net::ERR_CONNECTION_ABORTED", "net::ERR_CONNECTION_FAILED",
 	"net::ERR_TIMED_OUT", "net::ERR_CONNECTION_TIMED_OUT"
@@ -21,7 +22,8 @@ var status_codes = [324, 408, 502, 503, 504, 522, 524, 598, 599],
 		"net::ERR_TOO_MANY_SOCKET_STREAMS", "net::ERR_INVALID_RESPONSE", "net::ERR_INVALID_SPDY_STREAM", "net::ERR_INCOMPLETE_SPDY_HEADERS",
 		"net::ERR_SPDY_PING_FAILED", "net::ERR_CONTENT_LENGTH_MISMATCH", "net::ERR_RESPONSE_HEADERS_TRUNCATED",
 		"net::ERR_QUIC_HANDSHAKE_FAILED", "net::ERR_FTP_TRANSFER_ABORTED", "net::ERR_FTP_FILE_BUSY", "net::ERR_FTP_BAD_COMMAND_SEQUENCE",
-		"net::ERR_FTP_SYNTAX_ERROR", "net::ERR_DNS_MALFORMED_RESPONSE", "net::ERR_DNS_SERVER_FAILED", "net::ERR_DNS_TIMED_OUT", "net::ERR_DNS_SERVER_FAILED"
+		"net::ERR_FTP_SYNTAX_ERROR", "net::ERR_DNS_MALFORMED_RESPONSE", "net::ERR_DNS_SERVER_FAILED", "net::ERR_DNS_TIMED_OUT", "net::ERR_DNS_SERVER_FAILED",
+		"net::ERR_NAME_NOT_RESOLVED"
 	],
 	asset_types = ["stylesheet", "script", "image"],
 	enabled = true,
@@ -127,7 +129,6 @@ chrome.webRequest.onHeadersReceived.addListener(
 a low-level socket error. In these cases, an error is fired.)**/
 chrome.webRequest.onErrorOccurred.addListener(
 	function(details) {
-		console.log("Reloader: Tab ID #" + details.tabId + " (" + details.url + ") encountered socket error: " + details.error);
 		if(enabled) {
 			if (in_array(details.error, socket_errors)) {
 				if (details.type === "main_frame") {
