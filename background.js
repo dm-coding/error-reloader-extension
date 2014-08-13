@@ -7,7 +7,7 @@ However, the following codes *have* been observed in the wild and should make th
 most future versions of this program:
 	"net::ERR_EMPTY_RESPONSE", "net::ERR_ADDRESS_UNREACHABLE", "net::ERR_INVALID_RESPONSE", "net::ERR_CONTENT_LENGTH_MISMATCH",
 	"net::ERR_CONNECTION_RESET"
-The following codes are highly likely to be relevant:
+The following codes are also highly likely to be relevant:
 	"net::ERR_CONNECTION_REFUSED", "net::ERR_CONNECTION_ABORTED", "net::ERR_CONNECTION_FAILED",
 	"net::ERR_TIMED_OUT", "net::ERR_CONNECTION_TIMED_OUT"
 */
@@ -41,7 +41,14 @@ function in_array(needle, haystack) {
 /** Reloads a specific page (by tab ID) **/
 function reloadTab(tabId, url) {
 	if (tabId > -1) {
-		chrome.browserAction.setBadgeText({text: incrementCounter(asset_list, url).toString()});
+		count = incrementCounter(asset_list, url);
+		chrome.tabs.query({active: true}, function(tab) {
+			if ((tabId == tab.id) || (count > 99)) {
+				chrome.browserAction.setBadgeText({text: count.toString() });
+			} else {
+				chrome.browserAction.setBadgeText({text: "+" + count});
+			}
+		});
 		chrome.tabs.reload(tabId);
 	}
 }
@@ -78,7 +85,10 @@ function reloadAsset(details) {
 	} else if (details.type==="script") {
 		attributeName = 'src';
 		tagName = 'script';
-	} else {
+	}  else if (details.type==="inline") {
+		attributeName = 'src';
+		tagName = 'iframe';
+	}  else {
 		attributeName = "href";
 		tagName = "link";
 	}
@@ -93,6 +103,17 @@ function reloadAsset(details) {
 	});
 }
 
+/** alternative - untested
+if (!inIndex(needle, index)) {
+	index[needle]=1;
+} else {
+	i1=i2=1;
+	while (i2 < index[needle]) {
+		i2=i1+i2;
+		i1=i2;
+	}
+	index[needle]=i2;
+}*/
 function incrementCounter(index, assetID) {
 	if (index[assetID]) {
 		index[assetID] = index[assetID] + 1;
@@ -113,7 +134,7 @@ chrome.webRequest.onHeadersReceived.addListener(
 				if(details.type === "main_frame") {
 					console.log("Reloader: Tab ID #" + details.tabId + " (" + details.url + "): " + details.statusLine);
 					setTimeout(function() { reloadTab(details.tabId, details.url); }, wait_timer);
-				} else if (in_array(details.type, asset_types)) {
+				} else /*if (in_array(details.type, asset_types))*/ {
 					console.log("Reloader Page Resource: Tab ID #" + details.tabId + " (" + details.url + "): " + details.statusLine);
 					setTimeout(function() { reloadAsset(details); }, wait_timer);
 				}
